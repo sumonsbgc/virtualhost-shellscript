@@ -13,7 +13,7 @@ This is a simple shellscript file. I just create it for fun. Using this script w
 
 ## Composer and Laravel Installer Link
 
-# Laravel Installer: [https://laravel.com/docs/8.x#the-laravel-installer]
-# Composer: [https://getcomposer.org/doc/00-intro.md#installation-linux-unix-macos]
+Laravel Installer: [https://laravel.com/docs/8.x#the-laravel-installer]
+Composer: [https://getcomposer.org/doc/00-intro.md#installation-linux-unix-macos]
 
 
