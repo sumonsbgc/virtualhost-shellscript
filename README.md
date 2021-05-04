@@ -3,7 +3,7 @@
 This is a simple shellscript file. I just create it for fun. Using this script what I can do.
 
 * I can install laravel latest stable version
-* I can specify the project path where I want to instal the laravel
+* I can specify the project path where I want to install the laravel
 * I can configure the virtualhost, nothing need to do manually. everything handle the script.
 
 # Requirements
