@@ -27,7 +27,7 @@ else
 
     laravel new $PROJECTFOLDER
 
-    chown -R $USER:www-data $FULLPATH
+    sudo chown -R $USER:www-data $FULLPATH
     chmod -R 775 $FULLPATH
     cd $PROJECTFOLDER
 
