@@ -5,6 +5,13 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 echo "Process Starting for creating a virtual hosts."
+read -p "Do you want to clone any repository? (Y/N): " REPOSITORY_STATUS
+
+case $REPOSITORY_STATUS in
+	[yY] ) read -p "Please Provide Repository Link: " REPOSITORY_LINK;;
+	[nN] ) echo "So you are going to install a fresh laravel project";
+	exit;;
+esac
 
 read -p "What is the project path? " PROJECTPATH
 
@@ -16,6 +23,7 @@ else
 fi
 
 read -p "What is the project folder name? " PROJECTFOLDER
+
 FULLPATH="${PROJECTPATH}${PROJECTFOLDER}"
 
 if [ -e "$FULLPATH" ]
@@ -28,15 +36,20 @@ else
 	else
 		echo "Your project folder name is ${PROJECTFOLDER}"
 		cd $PROJECTPATH
-
-		laravel new $PROJECTFOLDER
-
+		
+		if [ -z "$REPOSITORY_LINK" ]
+		then
+			laravel new $PROJECTFOLDER
+		else
+			git clone $REPOSITORY_LINK $PROJECTFOLDER;
+		fi
+		
 		sudo chown -R $USER:www-data $FULLPATH
 		chmod -R 775 $FULLPATH
 		cd $PROJECTFOLDER
 
-		chmod -R 775 storage
-		chmod -R 775 bootstrap/cache
+		chmod -R 775 "${FULLPATH}/storage"
+		chmod -R 775 "${FULLPATH}/bootstrap/cache"
 	fi
 
 	# echo "Creating a folder in ${PROJECTPATH} ...."
@@ -63,48 +76,19 @@ if [[ `ps -acx|grep apache|wc -l` > 0 ]]; then
 
 sudo sh -c "cat > $HOSTCONFIGFILE" <<EOT
 <VirtualHost *:80>
-	# The ServerName directive sets the request scheme, hostname and port that
-	# the server uses to identify itself. This is used when creating
-	# redirection URLs. In the context of virtual hosts, the ServerName
-	# specifies what hostname must appear in the request's Host: header to
-	# match this virtual host. For the default virtual host (this file) this
-	# value is not decisive as it is used as a last resort host regardless.
-	# However, you must set it for any further virtual host explicitly.
-	# ServerName www.example.com
-
 	ServerAdmin webmaster@$PROJECTFOLDER.test
 	ServerName $PROJECTFOLDER.test
 	ServerAlias www.$PROJECTFOLDER.test
 	DocumentRoot $FULLPATH/public
 
-	# Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
-	# error, crit, alert, emerg.
-	# It is also possible to configure the loglevel for particular
-	# modules, e.g.
-	# LogLevel info ssl:warn
-
-	# For most configuration files from conf-available/, which are
-	# enabled or disabled at a global level, it is possible to
-	# include a line for only one particular virtual host. For example the
-	# following line enables the CGI configuration for this host only
-	# after it has been globally disabled with "a2disconf".
-	# Include conf-available/serve-cgi-bin.conf
-
-    ErrorLog ${FULLPATH}/error.log
+	ErrorLog ${FULLPATH}/error.log
 	CustomLog ${FULLPATH}/access.log combined
 
-	# For most configuration files from conf-available/, which are
-	# enabled or disabled at a global level, it is possible to
-	# include a line for only one particular virtual host. For example the
-	# following line enables the CGI configuration for this host only
-	# after it has been globally disabled with "a2disconf".
-	# Include conf-available/serve-cgi-bin.conf
-
-    <Directory $FULLPATH/public>
-	Options Indexes FollowSymLinks
-	AllowOverride All
-	Require all granted
-    </Directory>
+	<Directory $FULLPATH/public>
+		Options Indexes FollowSymLinks
+		AllowOverride All
+		Require all granted
+	</Directory>
 </VirtualHost>
 EOT
 	# Need To Run Below Commands To Link The File into /etc/apache2/sites-enabled
@@ -162,7 +146,7 @@ server {
 		# try_files \$uri /index.php =404;
         # fastcgi_split_path_info ^(.+\.php)(/.+)$;
 		# With php-fpm (or other unix sockets):
-		fastcgi_pass unix:/run/php/php8.1-fpm.sock;
+		fastcgi_pass unix:/run/php/php-fpm.sock;
 		fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
         include fastcgi_params;
@@ -183,7 +167,6 @@ server {
     }
 }
 EOT
-
 	# Need To Run Below Commands To Link The File into /etc/apache2/sites-enabled
 	sudo ln -s "/etc/nginx/sites-available/${PROJECTFOLDER}" "/etc/nginx/sites-enabled/"
 	sudo systemctl reload nginx
@@ -191,5 +174,5 @@ else
 	echo -e "${RED}Sorry! This shell script is working only in the Apache and Nginx Server. ${NC}"
 fi
 	echo -e "\n127.0.0.1 $PROJECTFOLDER.test" | sudo tee -a /etc/hosts
-	echo -e "${GREEN}Everything is ready, mate! Create something awesome!${NC}"
+	echo -e "${GREEN}Hey, mate! Everything is ready. Let's create something awesome!${NC}"
 fi
